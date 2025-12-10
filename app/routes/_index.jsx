@@ -2,12 +2,16 @@ import {Await, useLoaderData, Link} from 'react-router';
 import {Suspense} from 'react';
 import {Image} from '@shopify/hydrogen';
 import {ProductItem} from '~/components/ProductItem';
+import Hero from '~/components/Hero';
+import ServicesSection from '~/components/ServicesSection';
+import AboutSection from '~/components/AboutSection';
+import ContactSection from '~/components/ContactSection';
 
 /**
  * @type {Route.MetaFunction}
  */
 export const meta = () => {
-  return [{title: 'Hydrogen | Home'}];
+  return [{title: 'Food Truck Parts | Custom Food Trucks Built to Your Vision Since 1999'}];
 };
 
 /**
@@ -64,32 +68,12 @@ export default function Homepage() {
   const data = useLoaderData();
   return (
     <div className="home">
-      <FeaturedCollection collection={data.featuredCollection} />
-      <RecommendedProducts products={data.recommendedProducts} />
+      <Hero />
+      <ProductsSection products={data.recommendedProducts} />
+      <ServicesSection />
+      <AboutSection />
+      <ContactSection />
     </div>
-  );
-}
-
-/**
- * @param {{
- *   collection: FeaturedCollectionFragment;
- * }}
- */
-function FeaturedCollection({collection}) {
-  if (!collection) return null;
-  const image = collection?.image;
-  return (
-    <Link
-      className="featured-collection"
-      to={`/collections/${collection.handle}`}
-    >
-      {image && (
-        <div className="featured-collection-image">
-          <Image data={image} sizes="100vw" />
-        </div>
-      )}
-      <h1>{collection.title}</h1>
-    </Link>
   );
 }
 
@@ -98,25 +82,73 @@ function FeaturedCollection({collection}) {
  *   products: Promise<RecommendedProductsQuery | null>;
  * }}
  */
-function RecommendedProducts({products}) {
+function ProductsSection({products}) {
   return (
-    <div className="recommended-products">
-      <h2>Recommended Products</h2>
-      <Suspense fallback={<div>Loading...</div>}>
-        <Await resolve={products}>
-          {(response) => (
-            <div className="recommended-products-grid">
-              {response
-                ? response.products.nodes.map((product) => (
-                    <ProductItem key={product.id} product={product} />
-                  ))
-                : null}
-            </div>
-          )}
-        </Await>
-      </Suspense>
-      <br />
-    </div>
+    <section className="bg-white py-16 lg:py-24">
+      <div className="mx-auto max-w-7xl px-6 lg:px-8">
+        {/* Section Header */}
+        <div className="mx-auto max-w-2xl text-center">
+          <h2 className="text-3xl font-bold tracking-tight text-[#2F2F2F] sm:text-4xl">
+            Parts & Equipment
+          </h2>
+          <p className="mt-4 text-lg text-[#8A8A8A]">
+            Browse our complete inventory of food truck parts, equipment, and accessories
+          </p>
+        </div>
+
+        {/* Products Grid */}
+        <Suspense fallback={<div className="mt-12 text-center text-[#8A8A8A]">Loading products...</div>}>
+          <Await resolve={products}>
+            {(response) => (
+              <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+                {response
+                  ? response.products.nodes.map((product) => (
+                      <Link
+                        key={product.id}
+                        to={`/products/${product.handle}`}
+                        className="group overflow-hidden rounded-xl border border-[#EDEDED] bg-white transition-all hover:border-[#8A8A8A]/30 hover:shadow-lg"
+                      >
+                        {product.featuredImage && (
+                          <div className="relative aspect-square overflow-hidden bg-[#EDEDED]">
+                            <Image
+                              data={product.featuredImage}
+                              className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                              sizes="(min-width: 1024px) 25vw, (min-width: 640px) 50vw, 100vw"
+                            />
+                          </div>
+                        )}
+                        <div className="p-5">
+                          <h4 className="text-lg font-semibold text-[#2F2F2F] group-hover:text-[#D6452F]">
+                            {product.title}
+                          </h4>
+                          <div className="mt-4 flex items-center justify-between">
+                            <span className="text-lg font-bold text-[#D6452F]">
+                              ${product.priceRange.minVariantPrice.amount}
+                            </span>
+                            <span className="rounded-lg bg-[#EDEDED] px-4 py-2 text-sm font-medium text-[#2F2F2F] transition-colors group-hover:bg-[#D6452F] group-hover:text-white">
+                              View Details
+                            </span>
+                          </div>
+                        </div>
+                      </Link>
+                    ))
+                  : null}
+              </div>
+            )}
+          </Await>
+        </Suspense>
+
+        {/* View All CTA */}
+        <div className="mt-12 text-center">
+          <Link
+            to="/products"
+            className="rounded-lg bg-[#D6452F] px-8 py-3.5 text-base font-semibold text-white shadow-lg transition-all hover:bg-[#D6452F]/90 hover:shadow-xl inline-block"
+          >
+            View All Products
+          </Link>
+        </div>
+      </div>
+    </section>
   );
 }
 
